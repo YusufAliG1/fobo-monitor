@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+    <title>FOBO Akıllı Sera Monitörü</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #13d3ec;
+            --secondary: #22c55e;
+            --orange: #f97316;
+            --blue: #3b82f6;
+            --bg-dark: #102022;
+            --text-dark: #e0e0e0;
+            --surface-dark: rgba(30, 48, 51, 0.5);
+            --border-dark: rgba(19, 211, 236, 0.2);
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 1rem;
+            padding-bottom: 80px;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 900px;
+            margin: auto;
+        }
+        section h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: white;
+            text-align: center;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1rem;
+        }
+        @media (min-width: 640px) {
+            .grid-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .card {
+            background-color: var(--surface-dark);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            border: 1px solid var(--border-dark);
+            transition: all 0.2s ease-in-out;
+        }
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #a0aec0;
+            margin: 0;
+        }
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            margin-top: 0.5rem;
+        }
+        .status-harvest {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(19, 211, 236, 0.4);
+        }
+        .status-harvest .card-title,
+        .status-harvest .card-value {
+            color: #102022;
+        }
+        .chart-container {
+            background-color: var(--surface-dark);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-dark);
+        }
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section>
+            <h2>FOBO Özet Paneli</h2>
+            <div class="grid-3">
+                <div class="card">
+                    <p class="card-title">Anlık Olgunluk Oranı</p>
+                    <p id="mature_percent" class="card-value">-- %</p>
+                </div>
+                <div id="status_card" class="card">
+                    <p class="card-title">Hasat Durumu</p>
+                    <p id="harvest_status" class="card-value">--</p>
+                </div>
+                <div class="card">
+                    <p class="card-title">Tahmini Hasat</p>
+                    <p id="estimated_days" class="card-value">--</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="chart-container">
+                <h3 class="chart-title">Hasat Döngüsü (Olgun Çiçek Oranı %)</h3>
+                <canvas id="maturityChart"></canvas>
+            </div>
+        </section>
+
+        <section>
+            <div class="chart-container">
+                <h3 class="chart-title">Günlük Faktör Değişimleri</h3>
+                <canvas id="factorsChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // --- BURAYI KENDİ FIREBASE PROJE AYARLARINDAN ALACAĞIN BİLGİLERLE DEĞİŞTİR ---
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCwJC2-ftLdoiVBIr5_b5DIs7gHbE_FWZ4",
+  authDomain: "fobo-monitor.firebaseapp.com",
+  databaseURL: "https://fobo-monitor-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "fobo-monitor",
+  storageBucket: "fobo-monitor.firebasestorage.app",
+  messagingSenderId: "927818212437",
+  appId: "1:927818212437:web:99c70c814320267e0f60dc",
+  measurementId: "G-71B0DT76LJ"
+};
+        // --- DEĞİŞİKLİK BURADA BİTİYOR ---
+
+        // Firebase'i başlat
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let maturityChart, factorsChart;
+
+        // Grafik çizim ayarları
+        const chartOptions = {
+            scales: {
+                y: { ticks: { color: '#a0aec0' }, grid: { color: 'rgba(156, 163, 175, 0.1)' } },
+                x: { ticks: { color: '#a0aec0' }, grid: { color: 'rgba(156, 163, 175, 0.1)' } }
+            },
+            plugins: { legend: { labels: { color: '#e0e0e0' } } },
+            responsive: true,
+            maintainAspectRatio: false
+        };
+
+        // Veritabanındaki verileri dinle
+        const summaryRef = database.ref('summary');
+        const dailyLogsRef = database.ref('dailyLogs');
+
+        summaryRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('mature_percent').innerText = data.current_mature_percent.toFixed(2) + ' %';
+                document.getElementById('harvest_status').innerText = data.harvest_status;
+                document.getElementById('estimated_days').innerText = data.estimated_days > 0 ? '~' + data.estimated_days.toFixed(0) + ' Gün' : 'Kalibre Ediliyor';
+                
+                const statusCard = document.getElementById('status_card');
+                if (data.harvest_status && data.harvest_status.includes('HAZIR')) {
+                    statusCard.classList.add('status-harvest');
+                } else {
+                    statusCard.classList.remove('status-harvest');
+                }
+            }
+        });
+
+        dailyLogsRef.on('value', (snapshot) => {
+            const logs = snapshot.val();
+            if (logs) {
+                const logArray = Object.values(logs);
+                
+                const labels = logArray.map(log => 'Gün ' + log.day);
+                const maturities = logArray.map(log => log.mature_percent);
+                const temps = logArray.map(log => log.temp);
+                const lights = logArray.map(log => log.light / 40); // Işık verisini ölçekle (0-1000 yerine 0-25)
+                const airHumidities = logArray.map(log => log.air_humidity);
+
+                // Ana Olgunluk Grafiği
+                if (!maturityChart) {
+                    maturityChart = new Chart(document.getElementById('maturityChart'), {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{ label: 'Olgunluk (%)', data: maturities, borderColor: 'var(--primary)', backgroundColor: 'rgba(19, 211, 236, 0.2)', fill: true, tension: 0.1 }]
+                        },
+                        options: chartOptions
+                    });
+                } else {
+                    maturityChart.data.labels = labels;
+                    maturityChart.data.datasets[0].data = maturities;
+                    maturityChart.update();
+                }
+
+                // Faktörler Grafiği
+                if(!factorsChart) {
+                    factorsChart = new Chart(document.getElementById('factorsChart'), {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                { label: 'Sıcaklık (°C)', data: temps, borderColor: 'var(--orange)', fill: false },
+                                { label: 'Işık (x40)', data: lights, borderColor: '#facc15', fill: false },
+                                { label: 'Hava Nemi (%)', data: airHumidities, borderColor: 'var(--blue)', fill: false }
+                            ]
+                        },
+                        options: chartOptions
+                    });
+                } else {
+                    factorsChart.data.labels = labels;
+                    factorsChart.data.datasets[0].data = temps;
+                    factorsChart.data.datasets[1].data = lights;
+                    factorsChart.data.datasets[2].data = airHumidities;
+                    factorsChart.update();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
