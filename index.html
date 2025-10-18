@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html class="dark" lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -8,14 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #13d3ec;
-            --secondary: #22c55e;
-            --orange: #f97316;
-            --blue: #3b82f6;
-            --bg-dark: #102022;
-            --text-dark: #e0e0e0;
-            --surface-dark: rgba(30, 48, 51, 0.5);
-            --border-dark: rgba(19, 211, 236, 0.2);
+            --primary: #13d3ec; /* Ana Renk - Turkuaz */
+            --secondary: #22c55e; /* İkincil Renk - Yeşil */
+            --orange: #f97316; /* Sıcaklık Grafiği */
+            --blue: #3b82f6; /* Nem Grafiği */
+            --yellow: #facc15; /* Işık Grafiği */
+            --bg-dark: #102022; /* Koyu Arka Plan */
+            --text-dark: #e0e0e0; /* Koyu Tema Yazı Rengi */
+            --surface-dark: #1e3034; /* Kartların Arka Planı */
+            --border-dark: rgba(19, 211, 236, 0.2); /* Kenarlık Rengi */
         }
         body {
             font-family: 'Space Grotesk', sans-serif;
@@ -23,14 +24,14 @@
             color: var(--text-dark);
             margin: 0;
             padding: 1rem;
-            padding-bottom: 80px;
+            padding-bottom: 80px; /* Alttaki boşluk */
         }
         main {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-            max-width: 900px;
-            margin: auto;
+            gap: 2rem; /* Bölümler arası boşluk */
+            max-width: 900px; /* İçeriğin maksimum genişliği */
+            margin: auto; /* Ortala */
         }
         section h2 {
             font-size: 1.5rem;
@@ -38,13 +39,15 @@
             margin-bottom: 1rem;
             color: white;
             text-align: center;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 0.5rem;
         }
         .grid-3 {
             display: grid;
-            grid-template-columns: repeat(1, 1fr);
+            grid-template-columns: repeat(1, 1fr); /* Küçük ekranlarda tek sütun */
             gap: 1rem;
         }
-        @media (min-width: 640px) {
+        @media (min-width: 768px) { /* Orta ve büyük ekranlarda 3 sütun */
             .grid-3 {
                 grid-template-columns: repeat(3, 1fr);
             }
@@ -57,10 +60,14 @@
             border: 1px solid var(--border-dark);
             transition: all 0.2s ease-in-out;
         }
+        .card:hover { /* Üzerine gelince hafif büyüme efekti */
+             transform: translateY(-5px);
+             box-shadow: 0 10px 15px -3px rgba(19, 211, 236, 0.1), 0 4px 6px -4px rgba(19, 211, 236, 0.1);
+        }
         .card-title {
             font-size: 0.875rem;
             font-weight: 500;
-            color: #a0aec0;
+            color: #a0aec0; /* Gri tonlu başlık */
             margin: 0;
         }
         .card-value {
@@ -69,6 +76,7 @@
             color: white;
             margin-top: 0.5rem;
         }
+        /* Hasat zamanı geldiğinde kartın stili */
         .status-harvest {
             background-color: var(--primary);
             border-color: var(--primary);
@@ -76,19 +84,49 @@
         }
         .status-harvest .card-title,
         .status-harvest .card-value {
-            color: #102022;
+            color: #102022; /* Koyu arka plan rengi */
+            font-weight: 700;
         }
         .chart-container {
             background-color: var(--surface-dark);
             padding: 1rem;
             border-radius: 0.75rem;
             border: 1px solid var(--border-dark);
+            height: 300px; /* Grafiklere sabit yükseklik verelim */
+            position: relative; /* İçindeki canvas'ı düzgün konumlandırmak için */
         }
         .chart-title {
             font-size: 1.25rem;
             font-weight: bold;
             margin-bottom: 1rem;
             color: white;
+        }
+        /* Hasat Geçmişi Tablosu Stilleri */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        .history-table th, .history-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-dark);
+        }
+        .history-table th {
+            color: #a0aec0;
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            background-color: rgba(19, 211, 236, 0.1); /* Başlık satırı arka planı */
+        }
+         .history-table tbody tr:hover { /* Satırın üzerine gelince renk değiştir */
+             background-color: rgba(19, 211, 236, 0.05);
+         }
+        .history-table tr:last-child td {
+            border-bottom: none; /* Son satırın alt çizgisini kaldır */
+        }
+        .history-table td:nth-child(2), /* Süre sütunu */
+        .history-table td:nth-child(3) { /* Verim sütunu */
+            font-weight: bold;
         }
     </style>
 </head>
@@ -125,6 +163,23 @@
                 <canvas id="factorsChart"></canvas>
             </div>
         </section>
+        
+        <section>
+            <h2 class="chart-title">Geçmiş Hasat Performansı</h2>
+            <div class="chart-container" style="height: auto;"> <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Hasat No</th>
+                            <th>Tamamlanma Süresi</th>
+                            <th>Ortalama Verim</th>
+                        </tr>
+                    </thead>
+                    <tbody id="harvestHistoryBody">
+                        <tr><td colspan="3">Veri bekleniyor...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
     </main>
 
@@ -135,104 +190,164 @@
         // --- BURAYI KENDİ FIREBASE PROJE AYARLARINDAN ALACAĞIN BİLGİLERLE DEĞİŞTİR ---
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCwJC2-ftLdoiVBIr5_b5DIs7gHbE_FWZ4",
-  authDomain: "fobo-monitor.firebaseapp.com",
-  databaseURL: "https://fobo-monitor-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "fobo-monitor",
-  storageBucket: "fobo-monitor.firebasestorage.app",
-  messagingSenderId: "927818212437",
-  appId: "1:927818212437:web:99c70c814320267e0f60dc",
-  measurementId: "G-71B0DT76LJ"
+  apiKey: "AIzaSyCo0plzmKRnU6eYbsLo4idXrlC3EtozyfA",
+  authDomain: "fobo-monitor-90a11.firebaseapp.com",
+  databaseURL: "https://fobo-monitor-90a11-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "fobo-monitor-90a11",
+  storageBucket: "fobo-monitor-90a11.firebasestorage.app",
+  messagingSenderId: "681443228423",
+  appId: "1:681443228423:web:c064757c8f5454c74fe3a2",
+  measurementId: "G-N96G0VLV6C"
 };
         // --- DEĞİŞİKLİK BURADA BİTİYOR ---
 
-        // Firebase'i başlat
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
         let maturityChart, factorsChart;
 
-        // Grafik çizim ayarları
+        // Ortak grafik ayarları
         const chartOptions = {
             scales: {
-                y: { ticks: { color: '#a0aec0' }, grid: { color: 'rgba(156, 163, 175, 0.1)' } },
-                x: { ticks: { color: '#a0aec0' }, grid: { color: 'rgba(156, 163, 175, 0.1)' } }
+                y: { 
+                    ticks: { color: '#a0aec0', font: { family: "'Space Grotesk', sans-serif" } }, 
+                    grid: { color: 'rgba(156, 163, 175, 0.1)' } 
+                },
+                x: { 
+                    ticks: { color: '#a0aec0', font: { family: "'Space Grotesk', sans-serif" } }, 
+                    grid: { color: 'rgba(156, 163, 175, 0.1)' } 
+                }
             },
-            plugins: { legend: { labels: { color: '#e0e0e0' } } },
+            plugins: { 
+                legend: { labels: { color: '#e0e0e0', font: { family: "'Space Grotesk', sans-serif" } } } 
+            },
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false // Konteyner yüksekliğine uyması için önemli
         };
+        
+        // Grafik güncelleme fonksiyonu
+        function updateChart(chart, labels, datasets) {
+            if (!chart) return;
+            chart.data.labels = labels;
+            datasets.forEach((dataset, index) => {
+                if (chart.data.datasets[index]) { // Dataset var mı kontrol et
+                   chart.data.datasets[index].data = dataset.data;
+                }
+            });
+            chart.update();
+        }
 
-        // Veritabanındaki verileri dinle
-        const summaryRef = database.ref('summary');
-        const dailyLogsRef = database.ref('dailyLogs');
-
-        summaryRef.on('value', (snapshot) => {
+        // Özet verilerini dinle
+        database.ref('summary').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                document.getElementById('mature_percent').innerText = data.current_mature_percent.toFixed(2) + ' %';
-                document.getElementById('harvest_status').innerText = data.harvest_status;
-                document.getElementById('estimated_days').innerText = data.estimated_days > 0 ? '~' + data.estimated_days.toFixed(0) + ' Gün' : 'Kalibre Ediliyor';
-                
+                document.getElementById('mature_percent').innerText = (data.current_mature_percent || 0).toFixed(2) + ' %';
+                document.getElementById('harvest_status').innerText = data.harvest_status || '--';
+                // Tahmini gün 999 ise "Çok Uzun" yaz
+                let estimatedDaysText = '--';
+                if (data.estimated_days > 0 && data.estimated_days < 999) {
+                    estimatedDaysText = '~' + data.estimated_days.toFixed(0) + ' Gün';
+                } else if (data.estimated_days === 999) {
+                     estimatedDaysText = 'Çok Uzun';
+                } else if ((data.harvest_status || '').includes('Kalibre')) {
+                    estimatedDaysText = 'Kalibre...';
+                } else if ((data.harvest_status || '').includes('HAZIR')) {
+                    estimatedDaysText = 'ŞİMDİ!';
+                }
+                document.getElementById('estimated_days').innerText = estimatedDaysText;
+
                 const statusCard = document.getElementById('status_card');
                 if (data.harvest_status && data.harvest_status.includes('HAZIR')) {
                     statusCard.classList.add('status-harvest');
                 } else {
                     statusCard.classList.remove('status-harvest');
                 }
+            } else { // Veri yoksa başlangıç değerleri
+                 document.getElementById('mature_percent').innerText = '-- %';
+                 document.getElementById('harvest_status').innerText = 'Veri Yok';
+                 document.getElementById('estimated_days').innerText = '--';
             }
         });
 
-        dailyLogsRef.on('value', (snapshot) => {
+        // Günlük logları dinle
+        database.ref('dailyLogs').orderByChild('day').on('value', (snapshot) => { // Gün'e göre sırala
             const logs = snapshot.val();
+            let logArray = [];
             if (logs) {
-                const logArray = Object.values(logs);
-                
-                const labels = logArray.map(log => 'Gün ' + log.day);
-                const maturities = logArray.map(log => log.mature_percent);
-                const temps = logArray.map(log => log.temp);
-                const lights = logArray.map(log => log.light / 40); // Işık verisini ölçekle (0-1000 yerine 0-25)
-                const airHumidities = logArray.map(log => log.air_humidity);
+                 // Firebase objesini diziye çevir ve güne göre sırala
+                logArray = Object.values(logs).sort((a,b) => a.day - b.day);
+            }
+            
+            const labels = logArray.map(log => 'Gün ' + log.day);
+            const maturities = logArray.map(log => log.mature_percent);
+            const temps = logArray.map(log => log.temp);
+            const lights = logArray.map(log => log.light / 40); // Işık verisini 0-25 arasına ölçekle
+            const airHumidities = logArray.map(log => log.air_humidity);
 
-                // Ana Olgunluk Grafiği
-                if (!maturityChart) {
-                    maturityChart = new Chart(document.getElementById('maturityChart'), {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [{ label: 'Olgunluk (%)', data: maturities, borderColor: 'var(--primary)', backgroundColor: 'rgba(19, 211, 236, 0.2)', fill: true, tension: 0.1 }]
-                        },
-                        options: chartOptions
-                    });
-                } else {
-                    maturityChart.data.labels = labels;
-                    maturityChart.data.datasets[0].data = maturities;
-                    maturityChart.update();
-                }
+            // Ana Olgunluk Grafiği
+            if (!maturityChart) {
+                const ctxMaturity = document.getElementById('maturityChart').getContext('2d');
+                maturityChart = new Chart(ctxMaturity, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{ 
+                            label: 'Olgunluk (%)', 
+                            data: maturities, 
+                            borderColor: 'var(--primary)', 
+                            backgroundColor: 'rgba(19, 211, 236, 0.2)', 
+                            fill: true, 
+                            tension: 0.1 
+                        }]
+                    },
+                    options: { ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100, beginAtZero: true } } } // Y eksenini 0-100 yap
+                });
+            } else {
+                updateChart(maturityChart, labels, [{ data: maturities }]);
+            }
 
-                // Faktörler Grafiği
-                if(!factorsChart) {
-                    factorsChart = new Chart(document.getElementById('factorsChart'), {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                { label: 'Sıcaklık (°C)', data: temps, borderColor: 'var(--orange)', fill: false },
-                                { label: 'Işık (x40)', data: lights, borderColor: '#facc15', fill: false },
-                                { label: 'Hava Nemi (%)', data: airHumidities, borderColor: 'var(--blue)', fill: false }
-                            ]
-                        },
-                        options: chartOptions
-                    });
+            // Faktörler Grafiği
+            if(!factorsChart) {
+                const ctxFactors = document.getElementById('factorsChart').getContext('2d');
+                factorsChart = new Chart(ctxFactors, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'Sıcaklık (°C)', data: temps, borderColor: 'var(--orange)', fill: false, tension: 0.3 },
+                            { label: 'Işık (x40)', data: lights, borderColor: 'var(--yellow)', fill: false, tension: 0.3 }, // Y ekseni max 25 olur
+                            { label: 'Hava Nemi (%)', data: airHumidities, borderColor: 'var(--blue)', fill: false, tension: 0.3 }
+                        ]
+                    },
+                    options: chartOptions
+                });
+            } else {
+                updateChart(factorsChart, labels, [{ data: temps }, { data: lights }, { data: airHumidities }]);
+            }
+            
+        });
+        
+        // Hasat geçmişini dinle
+        database.ref('harvestHistory').orderByChild('hasatNo').on('value', (snapshot) => { // Hasat No'ya göre sırala
+            const history = snapshot.val();
+            const tableBody = document.getElementById('harvestHistoryBody');
+            tableBody.innerHTML = ''; // Tabloyu temizle
+            if(history){
+                 // Firebase objesini diziye çevir ve hasat no'ya göre ters sırala (en yeni üstte)
+                const historyArray = Object.values(history).sort((a,b) => b.hasatNo - a.hasatNo); 
+                if (historyArray.length === 0) {
+                     tableBody.innerHTML = '<tr><td colspan="3">Henüz tamamlanmış hasat yok.</td></tr>';
                 } else {
-                    factorsChart.data.labels = labels;
-                    factorsChart.data.datasets[0].data = temps;
-                    factorsChart.data.datasets[1].data = lights;
-                    factorsChart.data.datasets[2].data = airHumidities;
-                    factorsChart.update();
+                    historyArray.forEach(item => {
+                        let row = tableBody.insertRow();
+                        row.innerHTML = `<td>#${item.hasatNo}</td><td>${item.tamamlanmaSuresi} Gün</td><td>% ${item.ortalamaVerim.toFixed(2)}</td>`;
+                    });
                 }
+            } else {
+                 tableBody.innerHTML = '<tr><td colspan="3">Henüz tamamlanmış hasat yok.</td></tr>';
             }
         });
+
     </script>
 </body>
 </html>
