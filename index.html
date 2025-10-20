@@ -14,14 +14,11 @@
 
   <div id="status" class="mb-4 text-sm text-gray-400">Firebase bağlantısı bekleniyor...</div>
 
-  <div id="data-container" class="w-full max-w-2xl">
-    <p id="no-data-msg" class="text-gray-500">Henüz veri kaydı bulunamadı.</p>
-  </div>
+  <div id="data-container" class="w-full max-w-2xl"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    // *** DEĞİŞİKLİK: 'onValue' yerine 'onChildAdded' import edildi ***
-    import { getDatabase, ref, onChildAdded } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
       databaseURL: "https://fobo-esp-default-rtdb.europe-west1.firebasedatabase.app"
@@ -33,9 +30,8 @@
 
     const container = document.getElementById("data-container");
     const status = document.getElementById("status");
-    const noDataMsg = document.getElementById("no-data-msg");
 
-    // JSON verisini anlamlandırır (Bu fonksiyon değişmedi)
+    // JSON verisini anlamlandırır
     function parseEntry(entry) {
       const a = entry.a ?? entry.esp1 ?? entry.publisher1 ?? entry.value1 ?? entry.v1 ?? null;
       const b = entry.b ?? entry.esp2 ?? entry.publisher2 ?? entry.value2 ?? entry.v2 ?? null;
@@ -44,7 +40,6 @@
       return { a, b, product, ts };
     }
 
-    // Zaman formatlama (Bu fonksiyon değişmedi)
     function formatTime(ts) {
       if (!ts) return "-";
       if (ts > 1e12) return new Date(ts).toLocaleString("tr-TR");
@@ -52,40 +47,42 @@
       return String(ts);
     }
 
-    // *** DEĞİŞİKLİK: 'onValue' yerine 'onChildAdded' listener'ı kullanıldı ***
-    // Bu fonksiyon, 'results' altına eklenen *her bir çocuk* için bir kez çalışır.
-    // Hem sayfa ilk yüklendiğinde mevcut veriler için, hem de sonradan eklenen yeni veriler için çalışır.
-    onChildAdded(resultsRef, (snapshot) => {
-      
-      // Veri geldiği anda "veri yok" mesajını gizle
-      if (noDataMsg) {
-        noDataMsg.style.display = "none";
+    // Realtime listener
+    onValue(resultsRef, (snapshot) => {
+      const data = snapshot.val();
+      container.innerHTML = "";
+
+      if (!data) {
+        status.innerHTML = "❌ Veri yok veya bağlantı kapalı.";
+        container.innerHTML = `<p class="text-gray-500">Henüz veri kaydı bulunamadı.</p>`;
+        return;
       }
 
       status.innerHTML = "✅ Firebase bağlantısı aktif — veriler güncel.";
 
-      // Gelen tekil veriyi al
-      const entry = snapshot.val();
-      if (!entry) return; // Veri boşsa atla
+      const entries = Object.keys(data).map(k => ({ key: k, entry: data[k] }));
 
-      const { a, b, product, ts } = parseEntry(entry);
-      const html = `
-        <div class="rounded-xl bg-gray-800 p-4 shadow-md mb-3 w-full max-w-2xl">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-xs text-gray-400">${formatTime(ts)}</p>
-              <p class="text-sm mt-1"><span class="text-gray-400">P1:</span> <span class="font-semibold">${a ?? "-"}</span> 
-              <span class="ml-4 text-gray-400">P2:</span> <span class="font-semibold">${b ?? "-"}</span></p>
+      entries.sort((x, y) => {
+        const xts = x.entry.ts ?? x.entry.timestamp ?? 0;
+        const yts = y.entry.ts ?? y.entry.timestamp ?? 0;
+        return yts - xts;
+      });
+
+      entries.forEach(({ key, entry }) => {
+        const { a, b, product, ts } = parseEntry(entry);
+        const html = `
+          <div class="rounded-xl bg-gray-800 p-4 shadow-md mb-3 w-full max-w-2xl">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-xs text-gray-400">${formatTime(ts)}</p>
+                <p class="text-sm mt-1"><span class="text-gray-400">P1:</span> <span class="font-semibold">${a ?? "-"}</span> 
+                <span class="ml-4 text-gray-400">P2:</span> <span class="font-semibold">${b ?? "-"}</span></p>
+              </div>
+              <p class="text-2xl font-bold text-blue-400">${product ?? "-"}</p>
             </div>
-            <p class="text-2xl font-bold text-blue-400">${product ?? "-"}</p>
-          </div>
-        </div>`;
-      
-      // *** DEĞİŞİKLİK: 'innerHTML = ""' kaldırıldı. ***
-      // 'insertAdjacentHTML' ile yeni veri listenin *başına* eklenir.
-      // "afterbegin" = container'ın içine, en başa
-      container.insertAdjacentHTML("afterbegin", html);
-
+          </div>`;
+        container.insertAdjacentHTML("beforeend", html);
+      });
     }, (error) => {
       status.innerHTML = `❌ Firebase hatası: ${error}`;
     });
