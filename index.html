@@ -1,611 +1,121 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sera Domates Takip Sistemi</title>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .controls {
-            padding: 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .harvest-selector {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .harvest-selector label {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .harvest-selector select {
-            padding: 10px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.3s;
-        }
-
-        .harvest-selector select:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-
-        .status-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 30px;
-        }
-
-        .status-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-left: 5px solid #4CAF50;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .status-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-
-        .status-card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-
-        .status-value {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #4CAF50;
-            margin-bottom: 10px;
-        }
-
-        .status-unit {
-            color: #666;
-            font-size: 1em;
-        }
-
-        .charts-container {
-            padding: 30px;
-        }
-
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 30px;
-        }
-
-        .chart-container {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-
-        .chart-container h3 {
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 1.4em;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #666;
-            font-size: 1.2em;
-        }
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px;
-            border-left: 5px solid #c62828;
-        }
-
-        .harvest-complete {
-            background: #e8f5e8;
-            color: #2e7d32;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px;
-            border-left: 5px solid #2e7d32;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .status-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESP32 Firebase Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    main {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    .result {
+      background: #e8f5e9;
+      border-left: 5px solid #4caf50;
+      padding: 10px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🍅 Sera Domates Takip Sistemi</h1>
-            <p>Gerçek zamanlı domates büyüme ve olgunlaşma takibi</p>
-        </div>
+  <header>
+    <h1>📊 ESP32 Firebase Dashboard</h1>
+    <p>Gerçek zamanlı veriler</p>
+  </header>
 
-        <div class="controls">
-            <div class="harvest-selector">
-                <label for="harvestSelect">Hasat Seçimi:</label>
-                <select id="harvestSelect">
-                    <option value="">Hasat seçiliyor...</option>
-                </select>
-            </div>
-        </div>
+  <main>
+    <div id="status" class="result">Veriler yükleniyor...</div>
+    <h2>Son Gönderilen Veriler</h2>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Zaman Damgası</th>
+          <th>Publisher 1</th>
+          <th>Publisher 2</th>
+          <th>Çarpım</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
 
-        <div id="loading" class="loading">
-            🔄 Veriler yükleniyor...
-        </div>
+  <script>
+    // Firebase ayarların (senin bilgilerinle)
+    const firebaseConfig = {
+      databaseURL: "https://fobo-esp-default-rtdb.europe-west1.firebasedatabase.app/",
+    };
 
-        <div id="error" class="error" style="display: none;">
-            ❌ Veri yüklenirken hata oluştu. Lütfen sayfayı yenileyin.
-        </div>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        <div id="content" style="display: none;">
-            <div class="status-cards">
-                <div class="status-card">
-                    <h3>📊 Güncel Olgunluk</h3>
-                    <div class="status-value" id="currentMaturity">0%</div>
-                    <div class="status-unit">Domates olgunluk oranı</div>
-                </div>
-                <div class="status-card">
-                    <h3>📅 Tahmini Kalan Gün</h3>
-                    <div class="status-value" id="estimatedDays">0</div>
-                    <div class="status-unit">Hasata kalan gün sayısı</div>
-                </div>
-                <div class="status-card">
-                    <h3>📆 Gün</h3>
-                    <div class="status-value" id="currentDay">0</div>
-                    <div class="status-unit">Mevcut gün</div>
-                </div>
-                <div class="status-card">
-                    <h3>🌡️ Sıcaklık</h3>
-                    <div class="status-value" id="currentTemp">0°C</div>
-                    <div class="status-unit">Ortam sıcaklığı</div>
-                </div>
-            </div>
+    const statusEl = document.getElementById("status");
+    const tableBody = document.querySelector("#dataTable tbody");
 
-            <div class="charts-container">
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>🌡️ Sıcaklık Grafiği</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="temperatureChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <h3>💡 Işık Grafiği</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="lightChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <h3>🌱 Toprak Nemi Grafiği</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="soilHumidityChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <h3>💨 Hava Nemi Grafiği</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="airHumidityChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <h3>📈 Olgunluk Grafiği</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="maturityChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    function updateTable(data) {
+      tableBody.innerHTML = "";
+      if (!data) {
+        statusEl.textContent = "Veri bulunamadı!";
+        return;
+      }
 
-    <script>
-        // Firebase yapılandırması
-        const firebaseConfig = {
-            apiKey: "AIzaSyBvQvQvQvQvQvQvQvQvQvQvQvQvQvQvQvQ",
-            authDomain: "fobo-monitor-90a11.firebaseapp.com",
-            databaseURL: "https://fobo-monitor-90a11-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "fobo-monitor-90a11",
-            storageBucket: "fobo-monitor-90a11.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdefghijklmnop"
-        };
+      const entries = Object.values(data);
+      entries.forEach((entry) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${entry.ts ?? "-"}</td>
+          <td>${entry.a ?? "-"}</td>
+          <td>${entry.b ?? "-"}</td>
+          <td>${entry.product ?? "-"}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+      statusEl.textContent = "✅ Firebase bağlantısı aktif — veriler güncel.";
+    }
 
-        // Firebase başlat
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Global değişkenler
-        let currentHarvest = '';
-        let harvestData = {};
-        let charts = {};
-
-        // Sayfa yüklendiğinde
-        document.addEventListener('DOMContentLoaded', function() {
-            loadHarvests();
-            initializeCharts();
-        });
-
-        // Hasat listesini yükle
-        function loadHarvests() {
-            database.ref('/').once('value')
-                .then((snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        harvestData = data;
-                        populateHarvestSelector(data);
-                        showContent();
-                    } else {
-                        showError();
-                    }
-                })
-                .catch((error) => {
-                    console.error('Veri yükleme hatası:', error);
-                    showError();
-                });
-        }
-
-        // Hasat seçici doldur
-        function populateHarvestSelector(data) {
-            const select = document.getElementById('harvestSelect');
-            select.innerHTML = '<option value="">Hasat seçin...</option>';
-            
-            const harvests = Object.keys(data).filter(key => key.startsWith('harvest'));
-            harvests.sort((a, b) => {
-                const numA = parseInt(a.replace('harvest', ''));
-                const numB = parseInt(b.replace('harvest', ''));
-                return numB - numA; // En yeni hasat önce
-            });
-
-            harvests.forEach(harvest => {
-                const option = document.createElement('option');
-                option.value = harvest;
-                option.textContent = `Hasat ${harvest.replace('harvest', '')}`;
-                select.appendChild(option);
-            });
-
-            // İlk hasatı seç
-            if (harvests.length > 0) {
-                select.value = harvests[0];
-                currentHarvest = harvests[0];
-                updateDisplay();
-            }
-
-            // Değişiklik dinleyicisi
-            select.addEventListener('change', function() {
-                currentHarvest = this.value;
-                if (currentHarvest) {
-                    updateDisplay();
-                }
-            });
-        }
-
-        // Görüntüyü güncelle
-        function updateDisplay() {
-            if (!currentHarvest || !harvestData[currentHarvest]) {
-                return;
-            }
-
-            const harvest = harvestData[currentHarvest];
-            const days = Object.keys(harvest).filter(key => key.startsWith('day'));
-            days.sort((a, b) => {
-                const numA = parseInt(a.replace('day', ''));
-                const numB = parseInt(b.replace('day', ''));
-                return numA - numB;
-            });
-
-            if (days.length === 0) return;
-
-            const latestDay = days[days.length - 1];
-            const latestData = harvest[latestDay];
-
-            // Durum kartlarını güncelle
-            document.getElementById('currentMaturity').textContent = 
-                latestData.maturity ? latestData.maturity.toFixed(1) + '%' : '0%';
-            document.getElementById('estimatedDays').textContent = 
-                latestData.estimatedDays || 0;
-            document.getElementById('currentDay').textContent = 
-                latestData.day || days.length;
-            document.getElementById('currentTemp').textContent = 
-                latestData.temperature ? latestData.temperature.toFixed(1) + '°C' : '0°C';
-
-            // Grafikleri güncelle
-            updateCharts(harvest, days);
-        }
-
-        // Grafikleri güncelle
-        function updateCharts(harvest, days) {
-            const labels = days.map(day => `Gün ${day.replace('day', '')}`);
-            
-            const temperatureData = days.map(day => harvest[day].temperature || 0);
-            const lightData = days.map(day => harvest[day].light || 0);
-            const soilHumidityData = days.map(day => harvest[day].soilHumidity || 0);
-            const airHumidityData = days.map(day => harvest[day].airHumidity || 0);
-            const maturityData = days.map(day => harvest[day].maturity || 0);
-
-            // Sıcaklık grafiği
-            charts.temperature.data.labels = labels;
-            charts.temperature.data.datasets[0].data = temperatureData;
-            charts.temperature.update();
-
-            // Işık grafiği
-            charts.light.data.labels = labels;
-            charts.light.data.datasets[0].data = lightData;
-            charts.light.update();
-
-            // Toprak nemi grafiği
-            charts.soilHumidity.data.labels = labels;
-            charts.soilHumidity.data.datasets[0].data = soilHumidityData;
-            charts.soilHumidity.update();
-
-            // Hava nemi grafiği
-            charts.airHumidity.data.labels = labels;
-            charts.airHumidity.data.datasets[0].data = airHumidityData;
-            charts.airHumidity.update();
-
-            // Olgunluk grafiği
-            charts.maturity.data.labels = labels;
-            charts.maturity.data.datasets[0].data = maturityData;
-            charts.maturity.update();
-        }
-
-        // Grafikleri başlat
-        function initializeCharts() {
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            };
-
-            // Sıcaklık grafiği
-            const tempCtx = document.getElementById('temperatureChart').getContext('2d');
-            charts.temperature = new Chart(tempCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Sıcaklık (°C)',
-                        data: [],
-                        borderColor: '#ff6b6b',
-                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 15,
-                            max: 35
-                        }
-                    }
-                }
-            });
-
-            // Işık grafiği
-            const lightCtx = document.getElementById('lightChart').getContext('2d');
-            charts.light = new Chart(lightCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Işık (lux)',
-                        data: [],
-                        borderColor: '#ffd93d',
-                        backgroundColor: 'rgba(255, 217, 61, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 100,
-                            max: 900
-                        }
-                    }
-                }
-            });
-
-            // Toprak nemi grafiği
-            const soilCtx = document.getElementById('soilHumidityChart').getContext('2d');
-            charts.soilHumidity = new Chart(soilCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Toprak Nemi (%)',
-                        data: [],
-                        borderColor: '#6bcf7f',
-                        backgroundColor: 'rgba(107, 207, 127, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 20,
-                            max: 80
-                        }
-                    }
-                }
-            });
-
-            // Hava nemi grafiği
-            const airCtx = document.getElementById('airHumidityChart').getContext('2d');
-            charts.airHumidity = new Chart(airCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Hava Nemi (%)',
-                        data: [],
-                        borderColor: '#4dabf7',
-                        backgroundColor: 'rgba(77, 171, 247, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 30,
-                            max: 90
-                        }
-                    }
-                }
-            });
-
-            // Olgunluk grafiği
-            const maturityCtx = document.getElementById('maturityChart').getContext('2d');
-            charts.maturity = new Chart(maturityCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Olgunluk (%)',
-                        data: [],
-                        borderColor: '#51cf66',
-                        backgroundColor: 'rgba(81, 207, 102, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    }
-                }
-            });
-        }
-
-        // İçeriği göster
-        function showContent() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-        }
-
-        // Hata göster
-        function showError() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('content').style.display = 'none';
-        }
-
-        // Gerçek zamanlı güncelleme
-        database.ref('/').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                harvestData = data;
-                if (currentHarvest) {
-                    updateDisplay();
-                }
-            }
-        });
-    </script>
+    // Gerçek zamanlı dinleme
+    db.ref("/results").on("value", (snapshot) => {
+      const data = snapshot.val();
+      updateTable(data);
+    }, (error) => {
+      console.error(error);
+      statusEl.textContent = "❌ Firebase bağlantı hatası!";
+    });
+  </script>
 </body>
 </html>
