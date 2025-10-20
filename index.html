@@ -1,121 +1,175 @@
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ESP32 Firebase Dashboard</title>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-  <style>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1773cf",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+            },
+            fontFamily: {
+              display: ["Manrope"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "1rem",
+              xl: "1.5rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
     body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #007bff;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-    main {
-      max-width: 800px;
-      margin: 30px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    }
-    h2 {
-      color: #333;
-      margin-bottom: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background: #007bff;
-      color: white;
-    }
-    .result {
-      background: #e8f5e9;
-      border-left: 5px solid #4caf50;
-      padding: 10px;
-      margin-top: 20px;
+      min-height: max(884px, 100dvh);
     }
   </style>
-</head>
-<body>
-  <header>
-    <h1>📊 ESP32 Firebase Dashboard</h1>
-    <p>Gerçek zamanlı veriler</p>
-  </header>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="flex h-screen flex-col">
+<header class="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200/10 bg-background-light/80 px-4 py-3 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="flex h-10 w-10 items-center justify-center rounded-full text-gray-600 dark:text-gray-400">
+<span class="material-symbols-outlined"> arrow_back </span>
+</button>
+<h1 class="text-lg font-bold text-gray-900 dark:text-white">Geçmiş Veriler</h1>
+<div class="h-10 w-10"></div>
+</header>
+<main class="flex-1 overflow-y-auto p-4">
+<div class="space-y-3">
+<div class="rounded-lg bg-background-light p-4 shadow-sm dark:bg-background-dark/50">
+<div class="flex items-center justify-between">
+<div class="flex-1">
+<p class="text-xs text-gray-500 dark:text-gray-400">2024-07-26 14:30:00</p>
+<div class="mt-1 flex items-baseline gap-4">
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P1:</span>
+<span class="font-semibold text-gray-800 dark:text-white">123</span>
+</p>
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P2:</span>
+<span class="font-semibold text-gray-800 dark:text-white">125</span>
+</p>
+</div>
+</div>
+<p class="text-xl font-bold text-primary">15375</p>
+</div>
+</div>
+<div class="rounded-lg bg-background-light p-4 shadow-sm dark:bg-background-dark/50">
+<div class="flex items-center justify-between">
+<div class="flex-1">
+<p class="text-xs text-gray-500 dark:text-gray-400">2024-07-26 14:35:00</p>
+<div class="mt-1 flex items-baseline gap-4">
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P1:</span>
+<span class="font-semibold text-gray-800 dark:text-white">456</span>
+</p>
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P2:</span>
+<span class="font-semibold text-gray-800 dark:text-white">125</span>
+</p>
+</div>
+</div>
+<p class="text-xl font-bold text-primary">57000</p>
+</div>
+</div>
+<div class="rounded-lg bg-background-light p-4 shadow-sm dark:bg-background-dark/50">
+<div class="flex items-center justify-between">
+<div class="flex-1">
+<p class="text-xs text-gray-500 dark:text-gray-400">2024-07-26 14:40:00</p>
+<div class="mt-1 flex items-baseline gap-4">
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P1:</span>
+<span class="font-semibold text-gray-800 dark:text-white">789</span>
+</p>
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P2:</span>
+<span class="font-semibold text-gray-800 dark:text-white">125</span>
+</p>
+</div>
+</div>
+<p class="text-xl font-bold text-primary">98625</p>
+</div>
+</div>
+<div class="rounded-lg bg-background-light p-4 shadow-sm dark:bg-background-dark/50">
+<div class="flex items-center justify-between">
+<div class="flex-1">
+<p class="text-xs text-gray-500 dark:text-gray-400">2024-07-26 14:45:00</p>
+<div class="mt-1 flex items-baseline gap-4">
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P1:</span>
+<span class="font-semibold text-gray-800 dark:text-white">101</span>
+</p>
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P2:</span>
+<span class="font-semibold text-gray-800 dark:text-white">125</span>
+</p>
+</div>
+</div>
+<p class="text-xl font-bold text-primary">12625</p>
+</div>
+</div>
+<div class="rounded-lg bg-background-light p-4 shadow-sm dark:bg-background-dark/50">
+<div class="flex items-center justify-between">
+<div class="flex-1">
+<p class="text-xs text-gray-500 dark:text-gray-400">2024-07-26 14:50:00</p>
+<div class="mt-1 flex items-baseline gap-4">
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P1:</span>
+<span class="font-semibold text-gray-800 dark:text-white">234</span>
+</p>
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P2:</span>
+<span class="font-semibold text-gray-800 dark:text-white">125</span>
+</p>
+</div>
+</div>
+<p class="text-xl font-bold text-primary">29250</p>
+</div>
+</div>
+<div class="rounded-lg bg-background-light p-4 shadow-sm dark:bg-background-dark/50">
+<div class="flex items-center justify-between">
+<div class="flex-1">
+<p class="text-xs text-gray-500 dark:text-gray-400">2024-07-26 14:55:00</p>
+<div class="mt-1 flex items-baseline gap-4">
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P1:</span>
+<span class="font-semibold text-gray-800 dark:text-white">567</span>
+</p>
+<p class="text-sm">
+<span class="text-gray-600 dark:text-gray-300">P2:</span>
+<span class="font-semibold text-gray-800 dark:text-white">125</span>
+</p>
+</div>
+</div>
+<p class="text-xl font-bold text-primary">70875</p>
+</div>
+</div>
+</div>
+</main>
+<footer class="safe-area-inset-bottom sticky bottom-0 border-t border-gray-200/10 bg-background-light/80 backdrop-blur-sm dark:bg-background-dark/80">
+<nav class="flex items-center justify-around px-4 py-2">
+<a class="flex flex-col items-center gap-1 p-2 text-gray-500 transition-colors duration-200 hover:text-primary dark:text-gray-400 dark:hover:text-primary" href="#">
+<span class="material-symbols-outlined"> home </span>
+<span class="text-xs font-medium">Ana Sayfa</span>
+</a>
+<a class="flex flex-col items-center gap-1 rounded-full bg-primary/10 p-2 px-4 text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined"> history </span>
+<span class="text-xs font-bold">Geçmiş Veriler</span>
+</a>
+</nav>
+</footer>
+</div>
 
-  <main>
-    <div id="status" class="result">Veriler yükleniyor...</div>
-    <h2>Son Gönderilen Veriler</h2>
-    <table id="dataTable">
-      <thead>
-        <tr>
-          <th>Zaman Damgası</th>
-          <th>Publisher 1</th>
-          <th>Publisher 2</th>
-          <th>Çarpım</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </main>
-
-  <script>
-    // Firebase ayarların (senin bilgilerinle)
-    const firebaseConfig = {
-      databaseURL: "https://fobo-esp-default-rtdb.europe-west1.firebasedatabase.app/",
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const statusEl = document.getElementById("status");
-    const tableBody = document.querySelector("#dataTable tbody");
-
-    function updateTable(data) {
-      tableBody.innerHTML = "";
-      if (!data) {
-        statusEl.textContent = "Veri bulunamadı!";
-        return;
-      }
-
-      const entries = Object.values(data);
-      entries.forEach((entry) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${entry.ts ?? "-"}</td>
-          <td>${entry.a ?? "-"}</td>
-          <td>${entry.b ?? "-"}</td>
-          <td>${entry.product ?? "-"}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-      statusEl.textContent = "✅ Firebase bağlantısı aktif — veriler güncel.";
-    }
-
-    // Gerçek zamanlı dinleme
-    db.ref("/results").on("value", (snapshot) => {
-      const data = snapshot.val();
-      updateTable(data);
-    }, (error) => {
-      console.error(error);
-      statusEl.textContent = "❌ Firebase bağlantı hatası!";
-    });
-  </script>
-</body>
-</html>
+</body></html>
