@@ -8,10 +8,13 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-6">
 
-  <h1 class="text-2xl font-bold mb-4">📊 Gerçek Zamanlı ESP Verileri</h1>
-  <div id="status" class="mb-6 text-sm text-gray-400">Firebase bağlantısı bekleniyor...</div>
+  <h1 class="text-2xl font-bold flex items-center gap-2 mb-6">
+    <span>📊</span> Gerçek Zamanlı ESP Verileri
+  </h1>
 
-  <div id="data-container" class="w-full max-w-2xl space-y-3"></div>
+  <div id="status" class="mb-4 text-sm text-gray-400">Firebase bağlantısı bekleniyor...</div>
+
+  <div id="data-container" class="w-full max-w-2xl"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -28,35 +31,60 @@
     const container = document.getElementById("data-container");
     const status = document.getElementById("status");
 
+    // JSON verisini anlamlandırır
+    function parseEntry(entry) {
+      const a = entry.a ?? entry.esp1 ?? entry.publisher1 ?? entry.value1 ?? entry.v1 ?? null;
+      const b = entry.b ?? entry.esp2 ?? entry.publisher2 ?? entry.value2 ?? entry.v2 ?? null;
+      const product = entry.product ?? entry.result ?? entry.value ?? null;
+      const ts = entry.ts ?? entry.timestamp ?? entry.time ?? entry.date ?? null;
+      return { a, b, product, ts };
+    }
+
     function formatTime(ts) {
       if (!ts) return "-";
       if (ts > 1e12) return new Date(ts).toLocaleString("tr-TR");
-      if (ts > 1e9) return new Date(ts * 1000).toLocaleString("tr-TR");
-      return ts;
+      if (ts > 1e9 && ts < 1e12) return new Date(ts * 1000).toLocaleString("tr-TR");
+      return String(ts);
     }
 
+    // Realtime listener
     onValue(resultsRef, (snapshot) => {
       const data = snapshot.val();
+      container.innerHTML = "";
+
       if (!data) {
-        container.innerHTML = "<p class='text-gray-400'>Henüz veri yok.</p>";
+        status.innerHTML = "❌ Veri yok veya bağlantı kapalı.";
+        container.innerHTML = `<p class="text-gray-500">Henüz veri kaydı bulunamadı.</p>`;
         return;
       }
 
-      // Eğer tek kayıt varsa doğrudan göster
-      const entry = data.product ? data : Object.values(data).pop();
+      status.innerHTML = "✅ Firebase bağlantısı aktif — veriler güncel.";
 
-      const html = `
-        <div class="rounded-xl bg-gray-800 p-4 shadow-md">
-          <p class="text-xs text-gray-400 mb-2">${formatTime(entry.ts)}</p>
-          <p class="text-sm">
-            <span class="text-gray-400">P1:</span> <span class="font-semibold">${entry.a}</span>
-            <span class="ml-4 text-gray-400">P2:</span> <span class="font-semibold">${entry.b}</span>
-          </p>
-          <p class="text-3xl font-bold text-blue-400 mt-2">${entry.product}</p>
-        </div>`;
+      const entries = Object.keys(data).map(k => ({ key: k, entry: data[k] }));
 
-      container.innerHTML = html;
-      status.textContent = "✅ Veri canlı güncelleniyor";
+      entries.sort((x, y) => {
+        const xts = x.entry.ts ?? x.entry.timestamp ?? 0;
+        const yts = y.entry.ts ?? y.entry.timestamp ?? 0;
+        return yts - xts;
+      });
+
+      entries.forEach(({ key, entry }) => {
+        const { a, b, product, ts } = parseEntry(entry);
+        const html = `
+          <div class="rounded-xl bg-gray-800 p-4 shadow-md mb-3 w-full max-w-2xl">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-xs text-gray-400">${formatTime(ts)}</p>
+                <p class="text-sm mt-1"><span class="text-gray-400">P1:</span> <span class="font-semibold">${a ?? "-"}</span> 
+                <span class="ml-4 text-gray-400">P2:</span> <span class="font-semibold">${b ?? "-"}</span></p>
+              </div>
+              <p class="text-2xl font-bold text-blue-400">${product ?? "-"}</p>
+            </div>
+          </div>`;
+        container.insertAdjacentHTML("beforeend", html);
+      });
+    }, (error) => {
+      status.innerHTML = `❌ Firebase hatası: ${error}`;
     });
   </script>
 
